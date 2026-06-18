@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run tests
+        shell: pwsh
+        # GitHub-hosted Windows runners run elevated, so the integration tests
+        # (register MSIX + activate the handler CLSID) execute too.
+        run: ./tests/run-tests.ps1 -Configuration Release

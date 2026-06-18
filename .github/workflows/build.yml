@@ -1,0 +1,45 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure + build (Release x64)
+        shell: pwsh
+        run: |
+          cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+          cmake --build build --config Release
+
+      - name: Pack signed MSIX
+        shell: pwsh
+        run: ./tools/pack.ps1 -Version "0.0.1.0" -OutDir "${{ github.workspace }}/release"
+
+      - name: Validate MSIX structure
+        shell: pwsh
+        run: |
+          $makeappx = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\makeappx.exe" |
+                      Sort-Object FullName -Descending | Select-Object -First 1
+          $msix = Get-ChildItem ./release/*.msix | Select-Object -First 1
+          & $makeappx.FullName unpack /o /p $msix.FullName /d ./release/_unpacked
+          if ($LASTEXITCODE -ne 0) { throw "MSIX failed validation." }
+          if (-not (Test-Path ./release/_unpacked/AppxManifest.xml)) { throw "Manifest missing in package." }
+          if (-not (Test-Path ./release/_unpacked/ContextHandler.dll)) { throw "DLL missing in package." }
+          Write-Host "MSIX structure OK."
+
+      - name: Upload MSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenInCurrentTerminal-msix
+          path: |
+            release/*.msix
+            release/*.cer

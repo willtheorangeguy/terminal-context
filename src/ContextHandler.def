@@ -1,0 +1,4 @@
+LIBRARY ContextHandler
+EXPORTS
+    DllGetClassObject   PRIVATE
+    DllCanUnloadNow     PRIVATE

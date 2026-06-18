@@ -1,0 +1,30 @@
+# Build output
+build/
+dist/
+release/
+out/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.VC.db
+
+# Packaging artifacts
+*.msix
+*.msixbundle
+*.appx
+*.appxbundle
+
+# Certificates / secrets (never commit signing material)
+*.cer
+*.pfx
+*.snk
+
+# Logs
+*.log

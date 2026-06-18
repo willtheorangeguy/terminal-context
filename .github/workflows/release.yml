@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Four-part version (e.g. 1.2.3.0)"
+        required: false
+        default: "0.0.1.0"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine version
+        id: ver
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.release.tag_name }}"
+          if (-not $tag) { $tag = "${{ github.event.inputs.version }}" }
+          $v = $tag -replace '^v', ''
+          $parts = $v.Split('.')
+          while ($parts.Count -lt 4) { $parts += '0' }
+          $version = ($parts[0..3] -join '.')
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Package version: $version"
+
+      - name: Build + pack signed MSIX
+        shell: pwsh
+        run: |
+          ./tools/pack.ps1 -Version "${{ steps.ver.outputs.version }}" -OutDir "${{ github.workspace }}/release"
+
+      - name: Stage release bundle
+        shell: pwsh
+        run: |
+          Copy-Item ./tools/Install-Release.ps1 ./release/
+          Copy-Item ./README.md ./release/
+          $zip = "release/OpenInCurrentTerminal_${{ steps.ver.outputs.version }}.zip"
+          Compress-Archive -Path release/*.msix, release/*.cer, release/Install-Release.ps1, release/README.md -DestinationPath $zip -Force
+          Get-ChildItem ./release | Select-Object Name, Length
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenInCurrentTerminal-${{ steps.ver.outputs.version }}
+          path: release/*
+
+      - name: Attach to GitHub release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/*.msix
+            release/*.cer
+            release/*.zip
