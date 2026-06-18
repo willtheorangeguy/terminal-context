@@ -82,8 +82,17 @@ $isAdmin = (New-Object Security.Principal.WindowsPrincipal(
     [Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole(
     [Security.Principal.WindowsBuiltinRole]::Administrator)
 
+$appxAvailable = $true
+try {
+    Import-Module Appx -ErrorAction Stop
+} catch {
+    $appxAvailable = $false
+}
+
 if ($SkipIntegration -or -not $isAdmin) {
     Write-Host "Integration tests: SKIPPED (needs elevation)." -ForegroundColor Yellow
+} elseif (-not $appxAvailable) {
+    Write-Host "Integration tests: SKIPPED (Appx module unavailable on this platform)." -ForegroundColor Yellow
 } else {
     Write-Host "Integration tests:" -ForegroundColor Cyan
     $pkgName = "TerminalContext.OpenInCurrentTerminal"
