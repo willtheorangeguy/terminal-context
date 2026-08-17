@@ -28,3 +28,5 @@ cmake_install.cmake
 
 # Logs
 *.log
+.bandit/
+.recall/
