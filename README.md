@@ -1,117 +1,71 @@
-# Open in Current Terminal
+<!-- Logo -->
+<h1 align="center">Open in Current Terminal</h1>
 
-A Windows 11 File Explorer context-menu entry — **"Open in Current Terminal"** —
-that opens the right-clicked folder as a **new tab in your already-open Windows
-Terminal window** instead of spawning a fresh terminal. When several terminal
-windows are open it shows a chooser; the selected window is raised and the new
-(auto-focused) tab appears in it.
+<!-- Copy -->
+<h4 align="center">A Windows 11 context-menu entry that opens the right-clicked folder as a tab in the Windows Terminal window you already have open.</h4>
 
-Appears in the **main** Windows 11 right-click menu (not buried under "Show more
-options"), on both folders and folder backgrounds.
+<!-- Badges -->
+<div align="center">
+  <img alt="CI" src="https://img.shields.io/github/actions/workflow/status/willtheorangeguy/terminal-context/ci.yml?label=ci">
+  <img alt="GitHub Issues" src="https://img.shields.io/github/issues/willtheorangeguy/terminal-context">
+  <img alt="GitHub Pull Requests" src="https://img.shields.io/github/issues-pr/willtheorangeguy/terminal-context">
+  <img alt="License" src="https://img.shields.io/github/license/willtheorangeguy/terminal-context">
+</div>
 
-## How it works
+<!-- Navigation -->
+<p align="center">
+  <a href="#key-features">Key Features</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#usage">Usage</a> •
+  <a href="#documentation">Documentation</a> •
+  <a href="#support">Support</a> •
+  <a href="#contributing">Contributing</a> •
+  <a href="#credits">Credits</a> •
+  <a href="#license">License</a>
+</p>
 
-A single in-process COM DLL (`ContextHandler.dll`) implements `IExplorerCommand`
-and is registered through a **sparse MSIX package** (which is what grants a
-top-level Win11 menu entry). On click it:
+## Key Features
 
-1. reads the folder path from the shell selection;
-2. enumerates open Windows Terminal windows (`CASCADIA_HOSTING_WINDOW_CLASS`,
-   owned by `WindowsTerminal.exe`);
-3. picks the window — directly if one, via a `TaskDialog` chooser if several,
-   or opens a new window if none;
-4. brings it to the foreground and runs `wt -w 0 new-tab -d "<folder>"`.
+- Appears in the **main** Windows 11 right-click menu, not buried under "Show more options".
+- Works on folders and on folder backgrounds.
+- Opens a tab in an existing Windows Terminal window instead of spawning a new one.
+- Shows a chooser when several terminal windows are open, and raises the one you pick.
+- A single in-process COM DLL with no external dependencies — it imports only stable system DLLs.
 
-Why a new tab: Windows Terminal has **no API to run a command in an existing
-tab**, so `cd`-ing the current tab isn't possible. Opening a new tab in the
-existing window (`wt -w 0 new-tab -d`) is the official, reliable path. `-w 0`
-targets the most-recently-used window, so the handler focuses the chosen window
-first.
+## Installation
 
-## Layout
-
-```
-src/                 C++ COM handler (no external deps)
-  Guid.h             CLSID
-  dllmain.cpp        exports + class factory
-  ContextCommand.*   IExplorerCommand implementation
-  TerminalLauncher.* window enumeration, chooser, wt launch
-  stub.cpp           placeholder exe required by the package
-package/             sparse MSIX manifest + icon assets
-tools/               install.ps1 / uninstall.ps1
-CMakeLists.txt
-```
-
-## Install from a release
-
-Download the latest `OpenInCurrentTerminal_*.zip` from
-[Releases](../../releases), extract it, then from an **elevated** PowerShell:
+Download the latest `OpenInCurrentTerminal_*.zip` from [Releases](https://github.com/willtheorangeguy/terminal-context/releases), extract it, then from an **elevated** PowerShell:
 
 ```powershell
-.\Install-Release.ps1            # trusts the bundled cert + registers the MSIX
+.\Install-Release.ps1
 Stop-Process -Name explorer -Force
 ```
 
-The package is signed with a self-signed certificate; `Install-Release.ps1`
-trusts it (LocalMachine) so Windows will sideload the MSIX. Uninstall any time:
-`Get-AppxPackage *OpenInCurrentTerminal* | Remove-AppxPackage`.
+Building from source, and why it needs an MSIX at all, are in [`docs/installation.md`](docs/installation.md).
 
-> Why an MSIX and not an .exe/.msi installer? A top-level Windows 11 context-menu
-> entry must be provided by a packaged `IExplorerCommand` COM handler. Only MSIX
-> grants the package identity that registration requires; a classic MSI/EXE can't.
+## Usage
 
-## Build + install (from source)
+Right-click a folder, or the background of an open folder, and choose **Open in Current Terminal**.
 
-Requirements: Visual Studio 2022 (MSVC + C++), Windows 11 SDK, CMake.
+## Documentation
 
-```powershell
-# From an ELEVATED PowerShell window (cert trust writes to LocalMachine):
-.\tools\install.ps1
-Stop-Process -Name explorer -Force   # refresh the shell
-```
+Full documentation lives in [`docs/`](docs/README.md):
+[Quickstart](docs/quickstart.md) · [Installation](docs/installation.md) · [Configuration](docs/configuration.md) · [Architecture](docs/architecture.md) · [Development](docs/development.md) · [Deployment](docs/deployment.md) · [FAQ](docs/faq.md) · [Troubleshooting](docs/troubleshooting.md) · [Roadmap](docs/roadmap.md)
 
-`install.ps1` builds the DLL, stages a sparse package (binaries kept at an
-external location), creates and trusts a self-signed code-signing cert, signs the
-package, and registers it with `Add-AppxPackage -ExternalLocation`.
+## Support
 
-> Note: the installed binaries are served from `dist\ext\` in this repo — keep
-> that folder in place, or move it and re-run install.
+Open a [GitHub Discussion](https://github.com/willtheorangeguy/terminal-context/discussions/new) or file an [issue](https://github.com/willtheorangeguy/terminal-context/issues/new/choose).
 
-## Tests
+## Contributing
 
-```powershell
-.\tests\run-tests.ps1          # static checks; run elevated for integration tests
-```
+Contributions welcome. See the org-wide [Contributing Guide](https://github.com/willtheorangeguy/.github/blob/main/CONTRIBUTING.md) and [Code of Conduct](https://github.com/willtheorangeguy/.github/blob/main/CODE_OF_CONDUCT.md).
 
-Static tests verify the build artifacts, the DLL's COM exports, and that it
-imports only stable system DLLs (a regression guard for the comctl32-v6 /
-VC-runtime load failures that silently hide the menu). Run elevated to also pack,
-register, and activate the handler CLSID. CI runs these on every push/PR
-(`.github/workflows/ci.yml`); `build.yml` compiles and validates the MSIX.
+## Credits
 
-## Releasing
+Built on the Windows Shell's [`IExplorerCommand`](https://learn.microsoft.com/windows/win32/api/shobjidl_core/nn-shobjidl_core-iexplorercommand) interface and [Windows Terminal](https://github.com/microsoft/terminal)'s `wt` command line. Not affiliated with Microsoft.
 
-Publishing a GitHub release (tag `vX.Y.Z`) triggers `.github/workflows/release.yml`,
-which builds x64 Release, packs a signed self-contained MSIX via `tools/pack.ps1`,
-and attaches the `.msix`, `.cer`, and a `.zip` bundle to the release. To build a
-release artifact locally: `./tools/pack.ps1 -Version 1.2.3.0`.
+## License
 
-> The CI signs with a self-signed cert generated on the runner. For a smoother
-> end-user experience, swap in a real code-signing certificate (store the PFX in
-> repo secrets and adjust `pack.ps1`/the workflow to use it).
+MIT — see [`LICENSE.md`](LICENSE.md).
 
-## Uninstall
-
-```powershell
-.\tools\uninstall.ps1                 # elevated
-Stop-Process -Name explorer -Force
-```
-
-## Caveats
-
-- Always opens a **new tab**, never the literal current tab (Windows Terminal
-  limitation).
-- The chooser runs in a COM surrogate; if you click away before it appears,
-  Windows foreground rules may briefly prevent the window from raising.
-- Self-signed = sideloading. To use on another machine, install the same cert in
-  its LocalMachine Trusted Root, or sign with a real code-signing certificate.
+> Windows Terminal has no API to run a command in an existing tab, so this opens a new tab in the existing window. That is the closest thing the platform allows.
