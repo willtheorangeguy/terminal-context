@@ -7,12 +7,11 @@ licensing decision rather than a documentation one.
 Ordered by severity. See [`docs/roadmap.md`](../roadmap.md) for the narrative version,
 which also covers deliberate non-goals.
 
-
 **6 open:** 1 high, 3 medium, 2 low.
 
 ## 1. A drive root produces a malformed wt command line, and the comment exempts exactly the broken case
 
-**Severity:** High  
+**Severity:** High
 **Where:** `src/TerminalLauncher.cpp` -> `QuotePathForWt`
 
 **What:** The function reads `if (path.size() > 3 && path.back() == L'\\') path.pop_back();`, under a comment saying it strips a trailing backslash '(except a bare drive root) so the closing quote is not escaped by wt's parser'. A bare drive root is `C:\` -- length 3 -- so the condition skips it and the backslash is kept, yielding the argument `-d "C:\"`. A backslash immediately before a closing quote is parsed as an escaped quote, so the argument does not terminate where intended.
@@ -23,7 +22,7 @@ which also covers deliberate non-goals.
 
 ## 2. The window chooser is advisory -- the tab can open in a window the user did not pick
 
-**Severity:** Medium  
+**Severity:** Medium
 **Where:** `src/TerminalLauncher.cpp` -> `OpenFolderInTerminal`, `BringToForeground`, `LaunchWt`
 
 **What:** `wt` can address a window by its own identifier but not by `HWND`, so the chosen window is targeted indirectly: `BringToForeground` calls `SetForegroundWindow`, then `wt -w 0` is launched, `-w 0` meaning 'most recently used'. `SetForegroundWindow` is subject to Windows' focus-stealing restrictions, and its result is not checked. The handler runs inside a COM surrogate rather than the foreground process, which is one of the conditions under which the call is refused.
@@ -34,7 +33,7 @@ which also covers deliberate non-goals.
 
 ## 3. Every failure path is silent, including on items where the command cannot work
 
-**Severity:** Medium  
+**Severity:** Medium
 **Where:** `src/ContextCommand.cpp` -> `GetState`, `Invoke`; `src/TerminalLauncher.cpp` -> `LaunchWt`
 
 **What:** `GetState` returns `ECS_ENABLED` without inspecting the selection, so the entry is offered on anything the shell shows it for -- including items with no filesystem path, where `GetDisplayName(SIGDN_FILESYSPATH)` fails. `Invoke` returns the failing HRESULT, and Explorer does not surface it. `LaunchWt` likewise returns a failure when `wt.exe` cannot be found or started, and nothing displays it.
@@ -45,7 +44,7 @@ which also covers deliberate non-goals.
 
 ## 4. The README describes a TaskDialog chooser that was deliberately removed
 
-**Severity:** Medium  
+**Severity:** Medium
 **Where:** `README.md` 'How it works', step 3, vs `src/TerminalLauncher.cpp` -> `ChooseWindow`
 
 **What:** The README states the handler picks a window 'via a `TaskDialog` chooser if several'. The code uses `TrackPopupMenu`, with a comment recording why: 'Uses only user32 so the handler DLL has no comctl32-version dependency (TaskDialog lives only in comctl32 v6).' `tests/run-tests.ps1` describes the same change as a 'regression guard for the comctl32-v6 / VC-runtime load failures that hide the menu'.
@@ -56,7 +55,7 @@ which also covers deliberate non-goals.
 
 ## 5. A failure to create the chooser's owner window silently selects the first terminal
 
-**Severity:** Low  
+**Severity:** Low
 **Where:** `src/TerminalLauncher.cpp` -> `ChooseWindow`
 
 **What:** `ChooseWindow` returns the selected index, or `-1` for 'user cancelled'. When `CreateWindowExW` fails it returns `0` instead, commented 'Fall back to the first window.' The caller cannot distinguish that from a deliberate choice of the first entry.
@@ -67,7 +66,7 @@ which also covers deliberate non-goals.
 
 ## 6. Only the first item of a multi-selection is opened
 
-**Severity:** Low  
+**Severity:** Low
 **Where:** `src/ContextCommand.cpp` -> `Invoke`
 
 **What:** `Invoke` calls `items->GetItemAt(0)` and ignores the rest of the `IShellItemArray`. `GetState` does not disable the command for multi-selections, so the entry appears as normal when several folders are selected.
@@ -75,7 +74,6 @@ which also covers deliberate non-goals.
 **Why it matters:** Selecting four folders and choosing 'Open in Current Terminal' opens one tab, for whichever folder the shell happened to order first, and discards the other three without comment. The menu gave no indication it would do that.
 
 **Suggested fix:** Either open a tab per selected folder -- `wt` accepts multiple `new-tab` commands separated by `;` in one invocation -- or return `ECS_DISABLED` from `GetState` when the count exceeds one.
-
 
 ---
 

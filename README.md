@@ -49,7 +49,7 @@ Right-click a folder, or the background of an open folder, and choose **Open in 
 
 ## Documentation
 
-Full documentation lives in [`docs/`](docs/README.md):
+Full documentation lives in [`docs/`](docs/index.md):
 [Quickstart](docs/quickstart.md) · [Installation](docs/installation.md) · [Configuration](docs/configuration.md) · [Architecture](docs/architecture.md) · [Development](docs/development.md) · [Deployment](docs/deployment.md) · [FAQ](docs/faq.md) · [Troubleshooting](docs/troubleshooting.md) · [Roadmap](docs/roadmap.md)
 
 ## Support

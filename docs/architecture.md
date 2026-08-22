@@ -2,7 +2,7 @@
 
 One DLL, four source files, no external dependencies.
 
-```
+```text
 right-click a folder
    └── Explorer asks the registered IExplorerCommand for title, icon, state
           └── click → ContextCommand::Invoke
@@ -53,7 +53,7 @@ The current implementation uses nothing but user32. **The README still describes
 
 **Launching.**
 
-```
+```text
 wt.exe -w 0 new-tab -d "<folder>"
 ```
 

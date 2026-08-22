@@ -82,7 +82,7 @@ point with no icon resource.
 
 ## What the handler runs
 
-```
+```text
 wt.exe -w 0 new-tab -d "<folder>"
 ```
 

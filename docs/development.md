@@ -38,7 +38,7 @@ DLL, since the old one is still loaded.
 The script builds first if `build\Release\ContextHandler.dll` is missing, and exits non-zero if
 any case fails.
 
-**Static checks**
+### Static checks
 
 | Check | Guards against |
 |---|---|

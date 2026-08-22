@@ -1,0 +1,34 @@
+# Documentation configuration for terminal-context.
+
+INHERIT: .mkdocs-shared/shared/mkdocs.base.yml
+
+site_name: 'Open in Current Terminal'
+site_description: 'Add an "Open this Folder in Current Terminal" option to the Windows File Explorer context menu.'
+site_author: willtheorangeguy
+site_url: https://williamvdg.me/terminal-context/
+
+repo_url: https://github.com/willtheorangeguy/terminal-context
+repo_name: willtheorangeguy/terminal-context
+edit_uri: edit/main/docs/
+
+copyright: Copyright &copy; willtheorangeguy
+
+nav:
+  - Home: index.md
+  - 'Quickstart': 'quickstart.md'
+  - 'Installation': 'installation.md'
+  - 'Configuration': 'configuration.md'
+  - 'Architecture': 'architecture.md'
+  - 'Deployment': 'deployment.md'
+  - 'Development': 'development.md'
+  - 'FAQ': 'faq.md'
+  - 'Troubleshooting': 'troubleshooting.md'
+  - 'Roadmap': 'roadmap.md'
+  - 'terminal-context': 'internal/known-issues.md'
+  - License: license.md
+  - Contributing: https://github.com/willtheorangeguy/.github/blob/main/CONTRIBUTING.md
+  - Code of Conduct: https://github.com/willtheorangeguy/.github/blob/main/CODE_OF_CONDUCT.md
+  - Security: https://github.com/willtheorangeguy/.github/blob/main/SECURITY.md
+
+exclude_docs: |
+  docs.instructions.md

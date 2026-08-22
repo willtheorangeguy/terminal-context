@@ -3,7 +3,7 @@
 A Windows 11 File Explorer context-menu entry that opens the right-clicked folder as a new tab
 in a Windows Terminal window you already have open.
 
-```
+```text
 terminal-context/
 ├── src/                  C++ COM handler, no external dependencies
 │   ├── Guid.h            the CLSID
